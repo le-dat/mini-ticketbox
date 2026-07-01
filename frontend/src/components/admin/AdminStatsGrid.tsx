@@ -19,7 +19,7 @@ const STATS_CONFIG: StatItem[] = [
   },
   {
     key: 'sold',
-    label: 'Vé Đã Bán',
+    label: 'Đã Bán',
     icon: '🎫',
     colorClass: 'text-slate-100',
     getValue: ({ sold }) => (
@@ -30,7 +30,7 @@ const STATS_CONFIG: StatItem[] = [
   },
   {
     key: 'held',
-    label: 'Vé Đang Giữ',
+    label: 'Đang Giữ Chỗ',
     icon: '⏳',
     colorClass: 'text-brand-warning',
     getValue: ({ held }) => held,
