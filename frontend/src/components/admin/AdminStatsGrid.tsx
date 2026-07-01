@@ -1,4 +1,60 @@
+import type { ReactNode } from 'react';
 import type { AdminStats } from '../../types';
+
+interface StatItem {
+  key: string;
+  label: string;
+  icon: string;
+  colorClass: string;
+  getValue: (stats: { revenue: string; sold: number; held: number }) => ReactNode;
+}
+
+const STATS_CONFIG: StatItem[] = [
+  {
+    key: 'revenue',
+    label: 'Doanh Thu',
+    icon: '💰',
+    colorClass: 'text-brand-primary',
+    getValue: ({ revenue }) => `${revenue} đ`,
+  },
+  {
+    key: 'sold',
+    label: 'Vé Đã Bán',
+    icon: '🎫',
+    colorClass: 'text-slate-100',
+    getValue: ({ sold }) => (
+      <>
+        {sold} <span className="text-xs text-slate-500 font-normal font-sans">/ 500</span>
+      </>
+    ),
+  },
+  {
+    key: 'held',
+    label: 'Vé Đang Giữ',
+    icon: '⏳',
+    colorClass: 'text-brand-warning',
+    getValue: ({ held }) => held,
+  },
+];
+
+interface StatCardProps {
+  label: string;
+  value: ReactNode;
+  icon: string;
+  colorClass: string;
+}
+
+const StatCard = ({ label, value, icon, colorClass }: StatCardProps) => (
+  <div className="bento-card gap-2 flex items-baseline relative overflow-hidden">
+    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-display">
+      {label}
+    </span>
+    <span className={`text-3xl font-black mt-1 font-display ${colorClass}`}>
+      {value}
+    </span>
+    <div className="absolute right-4 bottom-4 text-2xl opacity-50">{icon}</div>
+  </div>
+);
 
 interface Props {
   adminStats: AdminStats | null;
@@ -11,35 +67,16 @@ export const AdminStatsGrid = ({ adminStats }: Props) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-      <div className="bento-card relative overflow-hidden">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-display">
-          Doanh Thu
-        </span>
-        <span className="text-3xl font-black text-brand-primary mt-1 font-display">
-          {revenue} đ
-        </span>
-        <div className="absolute right-4 bottom-4 text-3xl opacity-50">💰</div>
-      </div>
-
-      <div className="bento-card relative overflow-hidden">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-display">
-          Vé Đã Bán
-        </span>
-        <span className="text-3xl font-black text-slate-100 mt-1 font-display">
-          {sold} <span className="text-xs text-slate-500 font-normal font-sans">/ 500</span>
-        </span>
-        <div className="absolute right-4 bottom-4 text-3xl opacity-50">🎫</div>
-      </div>
-
-      <div className="bento-card relative overflow-hidden">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-display">
-          Vé Đang Giữ (HELD)
-        </span>
-        <span className="text-3xl font-black text-brand-warning mt-1 font-display">
-          {held}
-        </span>
-        <div className="absolute right-4 bottom-4 text-3xl opacity-50">⏳</div>
-      </div>
+      {STATS_CONFIG.map((cfg) => (
+        <StatCard
+          key={cfg.key}
+          label={cfg.label}
+          value={cfg.getValue({ revenue, sold, held })}
+          icon={cfg.icon}
+          colorClass={cfg.colorClass}
+        />
+      ))}
     </div>
   );
 };
+

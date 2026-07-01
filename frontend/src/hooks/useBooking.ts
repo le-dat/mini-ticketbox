@@ -69,7 +69,7 @@ export const useBooking = () => {
   // Handle timeout of ticket hold
   const handleHoldTimeout = () => {
     setHeldTicket(null);
-    setErrorMessage('Thời gian giữ vé đã hết hạn! Vé của bạn đã được giải phóng.');
+    setErrorMessage('Oop :(( Thời gian giữ vé của bạn đã hết hạn! Vui lòng chọn lại vé.');
   };
 
   return {

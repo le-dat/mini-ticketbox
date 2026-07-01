@@ -26,7 +26,7 @@ export const AdminTicketsTable = ({
       <div className="flex justify-between items-center pb-4 border-b border-border-default mb-6">
         <div>
           <h3 className="text-lg font-bold text-slate-200 font-display">
-            Danh sách vé đang giữ (HELD)
+            Danh sách vé đang giữ
           </h3>
           <p className="text-slate-500 text-xs mt-0.5">
             Thời gian thực tế giải phóng vé trên server
