@@ -104,8 +104,31 @@ Vé HELD hết hạn được cron job tự thu hồi mỗi 30 giây.
 - **Global ExceptionFilter** — mọi lỗi trả cùng 1 format: `{ statusCode, error, message, timestamp, path }`.
 - **ValidationPipe + class-validator** — validate và sanitize input ở cửa ngõ API.
 - **Idempotency** — payment API kiểm tra đơn hàng cũ trước khi xử lý, tránh charge kép khi client retry.
-- **Unit Test:** `npm test` trong `/backend`
+- **Unit Test:** Jest — kiểm tra race condition với 600 concurrent requests, đảm bảo chính xác 200 VIP được hold, 400 còn lại nhận `SOLD_OUT`.
 
+---
+
+## 🧪 Kiểm thử
+
+### Unit Test (tích hợp với DB thực)
+
+```bash
+# Yêu cầu: Docker đang chạy (cần kết nối DB)
+cd backend && npm test
+```
+
+Test case nổi bật: `tickets.service.spec.ts` — gửi 600 concurrent `holdTicket()`, xác minh đúng 200 VIP được giữ, 400 request còn lại throw `ConflictException(SOLD_OUT)`, không có ticketId trùng lặp.
+
+### Load Test (k6 · 5.000 VUs)
+
+```bash
+# Yêu cầu: Docker đang chạy + k6 đã cài (https://k6.io/docs/get-started/installation/)
+./test-performance.sh
+```
+
+Script tự động: khởi chạy k6, sau đó query DB xác minh `SOLD + HELD = 500`.
+
+---
 
 ## 📊 Kết quả Load Test (k6 · 5.000 VUs đồng thời)
 
