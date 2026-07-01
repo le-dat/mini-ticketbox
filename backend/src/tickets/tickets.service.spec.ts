@@ -40,13 +40,14 @@ describe('TicketsService (Concurrency Integration Test)', () => {
     const totalRequests = 600;
 
     // Tạo 600 requests giữ vé đồng thời với các user_id khác nhau
-    const holdPromises = Array.from({ length: totalRequests }).map((_, index) => {
-      const userId = `user_concurrent_${index + 1}`;
-      return ticketsService.holdTicket(VIP_TICKET_TYPE_ID, userId);
-    });
+    const holdPromises = Array.from({ length: totalRequests }).map(
+      (_, index) => {
+        const userId = `user_concurrent_${index + 1}`;
+        return ticketsService.holdTicket(VIP_TICKET_TYPE_ID, userId);
+      },
+    );
 
     // Chạy đồng thời 600 promises
-    this.logger = console; // Hỗ trợ in kết quả debug nếu cần
     console.log(`Starting ${totalRequests} concurrent hold ticket requests...`);
     const results = await Promise.allSettled(holdPromises);
     console.log(`Completed all concurrent requests.`);
@@ -56,9 +57,7 @@ describe('TicketsService (Concurrency Integration Test)', () => {
       (r) => r.status === 'fulfilled',
     ) as PromiseFulfilledResult<{ ticketId: number; expiresAt: Date }>[];
 
-    const failedHolds = results.filter(
-      (r) => r.status === 'rejected',
-    ) as PromiseRejectedResult[];
+    const failedHolds = results.filter((r) => r.status === 'rejected');
 
     // Kiểm chứng kết quả
     expect(successfulHolds.length).toBe(200);
@@ -67,7 +66,10 @@ describe('TicketsService (Concurrency Integration Test)', () => {
     // Xác minh tất cả các lỗi thất bại đều là ConflictException (SOLD_OUT)
     failedHolds.forEach((f) => {
       expect(f.reason).toBeInstanceOf(ConflictException);
-      const response = (f.reason as ConflictException).getResponse() as any;
+      const response = (f.reason as ConflictException).getResponse() as {
+        code?: string;
+        message?: string;
+      };
       expect(response.code).toBe('SOLD_OUT');
     });
 
@@ -77,8 +79,14 @@ describe('TicketsService (Concurrency Integration Test)', () => {
     expect(uniqueTicketIds.size).toBe(200);
 
     // Truy vấn database để đếm số lượng vé HELD và AVAILABLE thực tế trong DB
-    const heldCount = await ticketsService.getTicketsCount(VIP_TICKET_TYPE_ID, 'HELD');
-    const availableCount = await ticketsService.getTicketsCount(VIP_TICKET_TYPE_ID, 'AVAILABLE');
+    const heldCount = await ticketsService.getTicketsCount(
+      VIP_TICKET_TYPE_ID,
+      'HELD',
+    );
+    const availableCount = await ticketsService.getTicketsCount(
+      VIP_TICKET_TYPE_ID,
+      'AVAILABLE',
+    );
 
     expect(heldCount).toBe(200);
     expect(availableCount).toBe(0);

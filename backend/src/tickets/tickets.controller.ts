@@ -1,4 +1,12 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { HoldTicketDto } from './dto/hold-ticket.dto';
 

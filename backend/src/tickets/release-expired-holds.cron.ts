@@ -28,13 +28,18 @@ export class ReleaseExpiredHoldsCron {
     try {
       const result = await this.db.query(query);
       if (result.rowCount && result.rowCount > 0) {
-        this.logger.log(`Đã tự động giải phóng ${result.rowCount} vé giữ hết hạn.`);
+        this.logger.log(
+          `Đã tự động giải phóng ${result.rowCount} vé giữ hết hạn.`,
+        );
         // Emit sự kiện WebSocket cập nhật lại số lượng vé
         this.ticketsGateway.broadcastCountUpdate();
       }
     } catch (error) {
       const err = error as Error;
-      this.logger.error(`Lỗi khi giải phóng vé giữ hết hạn: ${err.message}`, err.stack);
+      this.logger.error(
+        `Lỗi khi giải phóng vé giữ hết hạn: ${err.message}`,
+        err.stack,
+      );
     }
   }
 }

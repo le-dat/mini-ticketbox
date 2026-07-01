@@ -1,6 +1,15 @@
 import { Injectable, ConflictException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 
+interface TicketRow {
+  id: number;
+  hold_expires_at: Date;
+}
+
+interface CountRow {
+  count: number;
+}
+
 @Injectable()
 export class TicketsService {
   private readonly logger = new Logger(TicketsService.name);
@@ -36,7 +45,10 @@ export class TicketsService {
     `;
 
     try {
-      const result = await this.db.query(query, [userId, ticketTypeId]);
+      const result = await this.db.query<TicketRow>(query, [
+        userId,
+        ticketTypeId,
+      ]);
 
       if (result.rows.length === 0) {
         throw new ConflictException({
@@ -53,7 +65,8 @@ export class TicketsService {
       if (error instanceof ConflictException) {
         throw error;
       }
-      this.logger.error(`Error holding ticket: ${error.message}`, error.stack);
+      const err = error as Error;
+      this.logger.error(`Error holding ticket: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -66,7 +79,7 @@ export class TicketsService {
       SELECT COUNT(*)::int as count FROM tickets
       WHERE ticket_type_id = $1 AND status = $2;
     `;
-    const result = await this.db.query(query, [ticketTypeId, status]);
+    const result = await this.db.query<CountRow>(query, [ticketTypeId, status]);
     return result.rows[0]?.count || 0;
   }
 

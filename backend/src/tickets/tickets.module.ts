@@ -9,6 +9,6 @@ import { DatabaseModule } from '../database/database.module';
   imports: [DatabaseModule],
   controllers: [TicketsController],
   providers: [TicketsService, TicketsGateway, ReleaseExpiredHoldsCron],
-  exports: [TicketsService],
+  exports: [TicketsService, TicketsGateway],
 })
 export class TicketsModule {}

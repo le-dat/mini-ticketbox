@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { TicketsModule } from './tickets/tickets.module';
     ScheduleModule.forRoot(),
     DatabaseModule,
     TicketsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
