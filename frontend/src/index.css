@@ -1,1 +1,75 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #F9A474;
+  --color-brand-secondary: #c3a3ff;
+  --color-brand-success: #59d9a6;
+  --color-brand-warning: #f4bf63;
+  --color-brand-danger: #ff7d8b;
+  
+  --color-bg-base: #0a0a0a;
+  --color-border-default: rgba(255, 255, 255, 0.10);
+  --color-border-strong: rgba(255, 255, 255, 0.20);
+  
+  --radius-bento: 32px;
+  --radius-bento-mobile: 20px;
+}
+
+/* Custom CSS-first Utility Classes */
+
+/* Glint effect for buttons */
+.btn-glint {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
+              inset 0 6px 0px -5px rgba(255, 255, 255, 0.3),
+              rgba(249, 164, 116, 0.2) 0 4px 10px -5px;
+}
+
+.btn-glint:hover:not(:disabled) {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
+              inset 0 6px 0px -5px rgba(255, 255, 255, 0.45),
+              rgba(249, 164, 116, 0.35) 0 6px 14px -4px;
+}
+
+/* Tactile Bento Card styling */
+.bento-card {
+  background-color: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-bento-mobile);
+  padding: 18px;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+  .bento-card {
+    border-radius: var(--radius-bento);
+    padding: 28px;
+  }
+}
+
+.bento-card-interactive {
+  cursor: pointer;
+}
+
+.bento-card-interactive:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.20);
+  box-shadow: 0 12px 24px -10px rgba(249, 164, 116, 0.08);
+}
+
+.bento-card-vip:hover {
+  box-shadow: 0 12px 24px -10px rgba(244, 191, 99, 0.08);
+}
+
+/* Brand Primary Button */
+.btn-brand-primary {
+  background: linear-gradient(135deg, #F9A474 0%, #F7B38E 55%, #FCD2B7 100%);
+  color: #1A120D;
+  border: 1px solid transparent;
+  border-radius: 32px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-brand-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #F39A67 0%, #F9A474 55%, #F7B38E 100%);
+}

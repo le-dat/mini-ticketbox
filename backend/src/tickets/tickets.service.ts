@@ -10,6 +10,19 @@ interface CountRow {
   count: number;
 }
 
+export interface TicketType {
+  id: number;
+  name: string;
+  price: number;
+}
+
+export interface HeldTicket {
+  id: number;
+  ticket_type_id: number;
+  user_id: string;
+  hold_expires_at: Date;
+}
+
 @Injectable()
 export class TicketsService {
   private readonly logger = new Logger(TicketsService.name);
@@ -97,5 +110,30 @@ export class TicketsService {
     `;
     await this.db.query(query);
     this.logger.log('All tickets status reset to AVAILABLE');
+  }
+
+  /**
+   * Lấy danh sách các loại vé từ bảng ticket_types
+   */
+  async getTicketTypes(): Promise<TicketType[]> {
+    const query = `
+      SELECT id, name, price::float as price FROM ticket_types
+      ORDER BY id ASC;
+    `;
+    const result = await this.db.query<TicketType>(query);
+    return result.rows;
+  }
+
+  /**
+   * Lấy danh sách các vé đang bị giữ (HELD) và chưa hết hạn
+   */
+  async getHeldTickets(): Promise<HeldTicket[]> {
+    const query = `
+      SELECT id, ticket_type_id, user_id, hold_expires_at FROM tickets
+      WHERE status = 'HELD' AND hold_expires_at > NOW()
+      ORDER BY hold_expires_at ASC;
+    `;
+    const result = await this.db.query<HeldTicket>(query);
+    return result.rows;
   }
 }

@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpCode,
   HttpStatus,
@@ -23,5 +24,10 @@ export class OrdersController {
       createOrderDto.user_id,
       createOrderDto.amount,
     );
+  }
+
+  @Get('stats')
+  async getAdminStats() {
+    return this.ordersService.getAdminStats();
   }
 }

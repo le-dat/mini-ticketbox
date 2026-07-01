@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { TicketsGateway } from '../tickets/tickets.gateway';
+import { TicketsService } from '../tickets/tickets.service';
 
 export interface Order {
   id: number;
@@ -28,6 +29,7 @@ export class OrdersService {
   constructor(
     private readonly db: DatabaseService,
     private readonly ticketsGateway: TicketsGateway,
+    private readonly ticketsService: TicketsService,
   ) {}
 
   /**
@@ -142,7 +144,7 @@ export class OrdersService {
       await client.query('COMMIT');
 
       // Phát sự kiện WebSocket thông báo thay đổi số lượng vé trống
-      this.ticketsGateway.broadcastCountUpdate();
+      await this.ticketsGateway.broadcastCountUpdate();
 
       return order;
     } catch (error) {
@@ -159,5 +161,36 @@ export class OrdersService {
   async resetAllOrders(): Promise<void> {
     await this.db.query('DELETE FROM orders;');
     this.logger.log('All orders deleted from database');
+  }
+
+  /**
+   * Tính toán doanh thu, số lượng vé bán và danh sách các vé đang bị giữ
+   */
+  async getAdminStats() {
+    const queryStats = `
+      SELECT 
+        COALESCE(COUNT(*), 0)::int as total_sold,
+        COALESCE(SUM(amount), 0)::float as total_revenue
+      FROM orders
+      WHERE status = 'PAID';
+    `;
+    const statsResult = await this.db.query<{
+      total_sold: number;
+      total_revenue: number;
+    }>(queryStats);
+    const { total_sold, total_revenue } = statsResult.rows[0];
+
+    const vipHeld = await this.ticketsService.getTicketsCount(2, 'HELD');
+    const regularHeld = await this.ticketsService.getTicketsCount(1, 'HELD');
+    const total_held = vipHeld + regularHeld;
+
+    const heldTickets = await this.ticketsService.getHeldTickets();
+
+    return {
+      total_sold,
+      total_revenue,
+      total_held,
+      heldTickets,
+    };
   }
 }

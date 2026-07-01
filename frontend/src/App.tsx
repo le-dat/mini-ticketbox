@@ -1,95 +1,132 @@
-import { useState } from 'react'
+import { useState } from "react";
+import { useBooking } from "./hooks/useBooking";
+import { useAdminStats } from "./hooks/useAdminStats";
+import { TabSwitcher } from "./components/shared/TabSwitcher";
+import { SpotlightCard } from "./components/booking/SpotlightCard";
+import { TicketCard } from "./components/booking/TicketCard";
+import { CheckoutPanel } from "./components/booking/CheckoutPanel";
+import { UserIdentityInput } from "./components/booking/UserIdentityInput";
+import { ErrorAlert } from "./components/shared/ErrorAlert";
+import { OrderSuccessPanel } from "./components/booking/OrderSuccessPanel";
+import { AdminStatsGrid } from "./components/admin/AdminStatsGrid";
+import { AdminTicketsTable } from "./components/admin/AdminTicketsTable";
 
 function App() {
-  const [ticketCount, setTicketCount] = useState(1)
-  const pricePerTicket = 1500000 // 1.5M VND
+  // Navigation State
+  const [view, setView] = useState<"booking" | "admin">("booking");
+
+  // Customer Booking State and Hooks
+  const {
+    userId,
+    setUserId,
+    isHolding,
+    isPaying,
+    heldTicket,
+    paymentSuccessOrder,
+    errorMessage,
+    regularSocket,
+    vipSocket,
+    handleHoldTicket,
+    handlePayment,
+    handleHoldTimeout,
+  } = useBooking();
+
+  // Admin View State and Hooks (polls only when admin view is active)
+  const { adminStats, isAdminLoading, refetch } = useAdminStats(view === "admin");
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* Background glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-bg-base text-slate-100 flex flex-col items-center justify-between p-4 md:p-8 relative overflow-hidden font-sans">
+      {/* Background radial glow */}
+      <div className="absolute top-[-25%] left-[-15%] w-[70%] h-[70%] rounded-full bg-brand-primary/5 blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-[-25%] right-[-15%] w-[70%] h-[70%] rounded-full bg-brand-secondary/5 blur-[160px] pointer-events-none" />
 
-      {/* Main card */}
-      <div className="w-full max-w-lg bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 shadow-2xl flex flex-col gap-6 relative z-10">
-        {/* Header */}
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="px-3 py-1 text-xs font-semibold tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 rounded-full flex items-center gap-1.5 animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            Vé đang mở bán
+      {/* Top Header & Switcher */}
+      <header className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center gap-4 z-20 pb-4 border-b border-border-default">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
+            <span className="text-xl font-bold text-brand-primary">🎟️</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 via-fuchsia-400 to-emerald-400 bg-clip-text text-transparent mt-2">
-            Mini Ticketbox
-          </h1>
-          <p className="text-slate-400 text-sm max-w-sm mt-1">
-            Đặt vé concert âm nhạc lớn nhất mùa hè này. Nhanh chóng, an toàn và trực quan.
-          </p>
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight font-display text-brand-primary">
+              Mini Ticketbox
+            </h1>
+            <p className="text-slate-500 text-xs">Hệ thống phân phối vé concert siêu tốc</p>
+          </div>
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent w-full" />
+        <TabSwitcher view={view} onViewChange={setView} />
+      </header>
 
-        {/* Concert Info */}
-        <div className="flex flex-col gap-4 bg-slate-950/40 p-5 rounded-2xl border border-slate-800/50">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-bold text-slate-200 text-lg">Summer Glow Fest 2026</h3>
-              <p className="text-slate-400 text-xs mt-1">Sân vận động Mỹ Đình, Hà Nội</p>
+      {/* Main Content Area */}
+      <main className="w-full max-w-5xl flex-1 flex items-center justify-center py-8 z-10">
+        {view === "booking" ? (
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* LEFT: Ticket Categories */}
+            <div className="lg:col-span-7 flex flex-col gap-6">
+              <SpotlightCard />
+
+              <UserIdentityInput userId={userId} onChange={setUserId} />
+
+              {/* Grid of Ticket Types */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <TicketCard
+                  ticketTypeId={1}
+                  typeName="Regular"
+                  price={500000}
+                  description="Trải nghiệm không gian âm nhạc sôi động và đầy sắc màu."
+                  totalTickets={300}
+                  isWsConnected={regularSocket.isWsConnected}
+                  count={regularSocket.count}
+                  isHolding={isHolding}
+                  onHold={handleHoldTicket}
+                />
+
+                <TicketCard
+                  ticketTypeId={2}
+                  typeName="VIP"
+                  price={1500000}
+                  description="Hàng ghế đầu cận cảnh sân khấu, kèm quà tặng lưu niệm."
+                  totalTickets={200}
+                  isWsConnected={vipSocket.isWsConnected}
+                  count={vipSocket.count}
+                  isHolding={isHolding}
+                  onHold={handleHoldTicket}
+                />
+              </div>
             </div>
-            <div className="text-right">
-              <span className="text-xs text-slate-500 block">Giá vé</span>
-              <span className="font-bold text-fuchsia-400 text-lg">1.500.000đ</span>
+
+            {/* RIGHT: Holding Checkout / Cart Status */}
+            <div className="lg:col-span-5 flex flex-col gap-4">
+              <CheckoutPanel
+                heldTicket={heldTicket}
+                isPaying={isPaying}
+                onPayment={handlePayment}
+                onHoldTimeout={handleHoldTimeout}
+              />
+
+              <ErrorAlert message={errorMessage} />
+              <OrderSuccessPanel order={paymentSuccessOrder} />
             </div>
           </div>
-          <div className="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800/40">
-            <div>📅 15 Tháng 8, 2026</div>
-            <div>⏰ 19:00 - 23:00</div>
+        ) : (
+          /* ADMIN VIEW */
+          <div className="w-full flex flex-col gap-8">
+            <AdminStatsGrid adminStats={adminStats} />
+            <AdminTicketsTable
+              adminStats={adminStats}
+              isAdminLoading={isAdminLoading}
+              onRefresh={refetch}
+            />
           </div>
-        </div>
-
-        {/* Ticket counter */}
-        <div className="flex flex-col gap-3">
-          <label className="text-sm font-semibold text-slate-300">Chọn số lượng vé</label>
-          <div className="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-2xl p-3">
-            <button
-              onClick={() => setTicketCount(Math.max(1, ticketCount - 1))}
-              className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all flex items-center justify-center font-bold text-slate-200 cursor-pointer"
-            >
-              -
-            </button>
-            <span className="text-xl font-bold text-slate-100">{ticketCount}</span>
-            <button
-              onClick={() => setTicketCount(Math.min(10, ticketCount + 1))}
-              className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all flex items-center justify-center font-bold text-slate-200 cursor-pointer"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        {/* Total Price */}
-        <div className="flex justify-between items-center bg-slate-950/40 p-4 rounded-xl border border-slate-800/30">
-          <span className="text-sm text-slate-400">Tổng thanh toán:</span>
-          <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-            {(pricePerTicket * ticketCount).toLocaleString('vi-VN')}đ
-          </span>
-        </div>
-
-        {/* Call to action */}
-        <button
-          onClick={() => alert('Chức năng đặt vé sẽ được tích hợp ở các bước sau!')}
-          className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold rounded-2xl shadow-lg shadow-violet-900/20 active:scale-[0.98] transition-all duration-150 cursor-pointer text-center"
-        >
-          Đặt Vé Ngay
-        </button>
-      </div>
+        )}
+      </main>
 
       {/* Footer */}
-      <div className="mt-8 text-xs text-slate-600 select-none">
-        Powered by NestJS & React Vite • TailwindCSS v4
-      </div>
+      <footer className="w-full text-center py-4 border-t border-border-default text-[10px] text-slate-600 select-none z-10 mt-8">
+        Designed with Bento Pro System • React 19 • TailwindCSS v4 • Socket.io Fallback Polling
+      </footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

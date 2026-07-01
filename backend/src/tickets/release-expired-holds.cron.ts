@@ -32,7 +32,7 @@ export class ReleaseExpiredHoldsCron {
           `Đã tự động giải phóng ${result.rowCount} vé giữ hết hạn.`,
         );
         // Emit sự kiện WebSocket cập nhật lại số lượng vé
-        this.ticketsGateway.broadcastCountUpdate();
+        await this.ticketsGateway.broadcastCountUpdate();
       }
     } catch (error) {
       const err = error as Error;
