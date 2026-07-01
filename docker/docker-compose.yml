@@ -3,9 +3,9 @@ services:
     image: postgres:15-alpine
     container_name: ticketbox-db
     environment:
-      POSTGRES_USER: ticketbox_user
-      POSTGRES_PASSWORD: ticketbox_password
-      POSTGRES_DB: ticketbox_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5433:5432"
     volumes:
@@ -15,17 +15,18 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     container_name: ticketbox-backend
     ports:
       - "3000:3000"
     environment:
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: ticketbox_user
-      DATABASE_PASSWORD: ticketbox_password
-      DATABASE_NAME: ticketbox_db
+      NODE_ENV: production
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
     depends_on:
       - postgres
     networks:
@@ -33,7 +34,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
     container_name: ticketbox-frontend
     ports:

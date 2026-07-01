@@ -123,7 +123,7 @@ function App() {
 
       {/* Footer */}
       <footer className="w-full text-center py-4 border-t border-border-default text-[10px] text-slate-600 select-none z-10 mt-8">
-        Designed with Bento Pro System • React 19 • TailwindCSS v4 • Socket.io Fallback Polling
+        All rights reserved @2026
       </footer>
     </div>
   );

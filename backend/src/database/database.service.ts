@@ -37,9 +37,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       password,
       database,
       // Tối ưu hóa Pool kết nối cho tải cao
-      max: 20,
+      max: 80,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      connectionTimeoutMillis: 10000,
     });
   }
 

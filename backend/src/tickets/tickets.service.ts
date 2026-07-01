@@ -26,6 +26,7 @@ export interface HeldTicket {
 @Injectable()
 export class TicketsService {
   private readonly logger = new Logger(TicketsService.name);
+  private cachedTicketTypes: TicketType[] | null = null;
 
   constructor(private readonly db: DatabaseService) {}
 
@@ -109,19 +110,24 @@ export class TicketsService {
         held_at         = NULL;
     `;
     await this.db.query(query);
+    this.cachedTicketTypes = null;
     this.logger.log('All tickets status reset to AVAILABLE');
   }
 
   /**
-   * Lấy danh sách các loại vé từ bảng ticket_types
+   * Lấy danh sách các loại vé từ bảng ticket_types (có caching in-memory)
    */
   async getTicketTypes(): Promise<TicketType[]> {
+    if (this.cachedTicketTypes) {
+      return this.cachedTicketTypes;
+    }
     const query = `
       SELECT id, name, price::float as price FROM ticket_types
       ORDER BY id ASC;
     `;
     const result = await this.db.query<TicketType>(query);
-    return result.rows;
+    this.cachedTicketTypes = result.rows;
+    return this.cachedTicketTypes;
   }
 
   /**

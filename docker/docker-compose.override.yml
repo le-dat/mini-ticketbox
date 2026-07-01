@@ -1,0 +1,15 @@
+# Override for local development environment.
+# Loaded automatically by docker compose alongside docker-compose.yml.
+# Sets NODE_ENV=development and mounts source code for hot-reloading.
+services:
+  backend:
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ../backend:/usr/src/app
+      - /usr/src/app/node_modules
+
+  frontend:
+    volumes:
+      - ../frontend:/usr/src/app
+      - /usr/src/app/node_modules
