@@ -1,0 +1,50 @@
+# Dependency directories
+node_modules/
+
+# Build and cache outputs
+dist/
+build/
+out/
+.cache/
+.vite/
+
+# Testing and Coverage
+coverage/
+*.lcov
+.nyc_output/
+playwright-report/
+test-results/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+*.env.*
+!.env.example
+
+# Docker overrides
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+.npm/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE and Editors
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.agents/
+docs/
