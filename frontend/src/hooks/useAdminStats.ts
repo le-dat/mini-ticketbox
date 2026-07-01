@@ -18,10 +18,13 @@ export const useAdminStats = (isActive: boolean) => {
     }
   }, []);
 
+  // Admin: fetch ngay khi vào tab + polling mỗi 10s
+  // Lý do giữ polling ở đây: admin chỉ 1–2 người → 12 req/phút, negligible.
+  // Khác với client (5.000 user) — client dùng WS-only để tránh sập server.
   useEffect(() => {
     if (isActive) {
       fetchAdminStats();
-      const interval = setInterval(fetchAdminStats, 3000);
+      const interval = setInterval(fetchAdminStats, 10_000);
       return () => clearInterval(interval);
     }
   }, [isActive, fetchAdminStats]);

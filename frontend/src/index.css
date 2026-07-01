@@ -73,3 +73,22 @@
 .btn-brand-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #F39A67 0%, #F9A474 55%, #F7B38E 100%);
 }
+
+/* WsStatusBanner entrance animation */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

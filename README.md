@@ -25,7 +25,7 @@ graph TD
 
     User -->|"HTTP / WS"| EventPage
     User -->|"HTTP"| CheckoutPage
-    Admin -->|"HTTP poll 5s"| AdminPage
+    Admin --> |"HTTP"| AdminPage
 
     EventPage -->|"Socket.io"| WS
     CheckoutPage -->|"POST hold / POST payment"| REST
@@ -96,7 +96,10 @@ Vé HELD hết hạn được cron job tự thu hồi mỗi 30 giây.
 
 - **Button disable ngay khi bấm** — chặn double-submit trước khi server phản hồi.
 - **Countdown đồng bộ server** — tính `expires_at - Date.now()` thay vì chạy timer 5:00 thuần client (tránh lệch khi tab treo).
-- **WebSocket throttle 1s** — server giới hạn emit tối đa 1 lần/giây, tránh flood client khi có hàng nghìn giao dịch/giây. Fallback: HTTP poll mỗi 3s nếu WS mất kết nối.
+- **WebSocket làm nguồn sự thật duy nhất (client)** — số vé được fetch 1 lần lúc mount, sau đó cập nhật hoàn toàn qua WS event `ticket_count_updated:{id}`. Không polling — tránh tăng tải server khi có 5.000 user online.
+- **WS Disconnect UX** — nếu mất kết nối WebSocket quá 10 giây: hiển thị banner cảnh báo `"Mất kết nối thời gian thực"`, disable nút đặt vé (chặn spam click khi data có thể cũ). Khi WS reconnect: ẩn banner, refetch count ngay lập tức, cho phép đặt vé trở lại.
+- **Admin polling 10s** — Admin dashboard dùng HTTP polling mỗi 10 giây (thay vì WS). Lý do: admin chỉ 1–2 người → 12 req/phút, hoàn toàn không đáng kể. Quyết định có chủ đích: không phải "xóa polling hết cho sạch" mà là áp dụng đúng chiến lược cho từng đối tượng user.
+- **WebSocket throttle 1s** — server giới hạn emit tối đa 1 lần/giây, tránh flood client khi có hàng nghìn giao dịch/giây.
 
 ### 3. Clean Code
 

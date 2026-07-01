@@ -5,6 +5,7 @@ interface Props {
   description: string;
   totalTickets: number;
   isWsConnected: boolean;
+  isStale: boolean;
   count: number;
   isHolding: boolean;
   onHold: (ticketTypeId: number, price: number, typeName: string) => void;
@@ -17,6 +18,7 @@ export const TicketCard = ({
   description,
   totalTickets,
   isWsConnected,
+  isStale,
   count,
   isHolding,
   onHold,
@@ -69,17 +71,19 @@ export const TicketCard = ({
         </div>
 
         <button
-          disabled={isHolding || count === 0}
+          id={`hold-ticket-btn-${ticketTypeId}`}
+          disabled={isHolding || count === 0 || isStale}
+          title={isStale ? 'Đang mất kết nối — vui lòng chờ kết nối lại' : undefined}
           onClick={() => onHold(ticketTypeId, price, typeName)}
           className={`w-full py-3.5 rounded-full font-bold cursor-pointer transition-all duration-200 active:scale-98 text-xs uppercase tracking-wider ${
-            count === 0
+            count === 0 || isStale
               ? 'bg-slate-900 text-slate-600 border border-border-default cursor-not-allowed'
               : isVip
               ? 'btn-glint'
               : 'btn-brand-primary btn-glint'
           }`}
           style={
-            isVip && count > 0 && !isHolding
+            isVip && count > 0 && !isHolding && !isStale
               ? {
                   background: 'linear-gradient(135deg, #c3a3ff 0%, #a881f5 55%, #cfbeeb 100%)',
                   color: '#1A120D',
@@ -87,7 +91,7 @@ export const TicketCard = ({
               : {}
           }
         >
-          {count === 0 ? 'Hết vé' : isHolding ? 'Đang giữ vé...' : `Đặt Vé ${typeName}`}
+          {isStale ? '⚠ Mất kết nối' : count === 0 ? 'Hết vé' : isHolding ? 'Đang giữ vé...' : `Đặt Vé ${typeName}`}
         </button>
       </div>
     </div>

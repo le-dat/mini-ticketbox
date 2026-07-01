@@ -1,29 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { API_BASE_URL } from '../services/api-client';
 import { ticketService } from '../services/ticket.service';
 
+const WS_STALE_THRESHOLD_MS = 10_000; // Coi là stale sau 10s mất kết nối
+
 export const useTicketSocket = (ticketTypeId: number) => {
   const [count, setCount] = useState<number>(0);
   const [isWsConnected, setIsWsConnected] = useState<boolean>(false);
+  // isStale = true khi WS mất kết nối > 10 giây
+  const [isStale, setIsStale] = useState<boolean>(false);
+
+  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     let active = true;
 
-    // 1. Đọc số lượng vé ban đầu qua API
-    const fetchInitialCount = async () => {
-      try {
-        const availableCount = await ticketService.getAvailableCount(ticketTypeId);
-        if (active) {
-          setCount(availableCount);
-        }
-      } catch (err) {
-        console.error('Lỗi khi tải số lượng vé ban đầu:', err);
-      }
-    };
-    fetchInitialCount();
+    // Fetch số lượng vé ban đầu — chỉ 1 lần duy nhất
+    ticketService.getAvailableCount(ticketTypeId).then((availableCount) => {
+      if (active) setCount(availableCount);
+    }).catch((err) => {
+      console.error('Lỗi khi tải số lượng vé ban đầu:', err);
+    });
 
-    // 2. Kết nối WebSocket
     const socket = io(API_BASE_URL, {
       transports: ['websocket'],
       reconnectionAttempts: 10,
@@ -31,43 +30,37 @@ export const useTicketSocket = (ticketTypeId: number) => {
     });
 
     socket.on('connect', () => {
-      if (active) setIsWsConnected(true);
+      if (!active) return;
+      // Huỷ timer stale nếu vừa reconnect
+      clearTimeout(staleTimerRef.current);
+      setIsWsConnected(true);
+      setIsStale(false);
+      // Refetch ngay khi WS reconnect để đồng bộ lại count
+      ticketService.getAvailableCount(ticketTypeId).then((availableCount) => {
+        if (active) setCount(availableCount);
+      }).catch(() => {});
     });
 
     socket.on('disconnect', () => {
-      if (active) setIsWsConnected(false);
+      if (!active) return;
+      setIsWsConnected(false);
+      // Bắt đầu đếm ngược 10s — nếu không reconnect → đánh dấu stale
+      staleTimerRef.current = setTimeout(() => {
+        if (active) setIsStale(true);
+      }, WS_STALE_THRESHOLD_MS);
     });
 
+    // Backend push count mới — không cần polling
     socket.on(`ticket_count_updated:${ticketTypeId}`, (data: { availableCount: number }) => {
-      if (active) {
-        setCount(data.availableCount);
-      }
+      if (active) setCount(data.availableCount);
     });
-
-    // 3. Fallback sang Polling nếu mất kết nối WebSocket
-    let intervalId: ReturnType<typeof setInterval> | undefined;
-    if (!isWsConnected) {
-      intervalId = setInterval(async () => {
-        try {
-          const availableCount = await ticketService.getAvailableCount(ticketTypeId);
-          if (active) {
-            setCount(availableCount);
-          }
-        } catch (e) {
-          console.error('Lỗi polling đồng bộ số lượng vé:', e);
-        }
-      }, 3000); // Thăm dò mỗi 3 giây
-    }
 
     return () => {
       active = false;
+      clearTimeout(staleTimerRef.current);
       socket.disconnect();
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
     };
-  }, [ticketTypeId, isWsConnected]);
+  }, [ticketTypeId]); // Không có isWsConnected trong deps → không loop
 
-  return { count, isWsConnected };
+  return { count, isWsConnected, isStale };
 };
-

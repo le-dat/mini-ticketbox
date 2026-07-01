@@ -10,6 +10,7 @@ import { ErrorAlert } from "./components/shared/ErrorAlert";
 import { OrderSuccessPanel } from "./components/booking/OrderSuccessPanel";
 import { AdminStatsGrid } from "./components/admin/AdminStatsGrid";
 import { AdminTicketsTable } from "./components/admin/AdminTicketsTable";
+import { WsStatusBanner } from "./components/shared/WsStatusBanner";
 
 function App() {
   // Navigation State
@@ -30,6 +31,9 @@ function App() {
     handlePayment,
     handleHoldTimeout,
   } = useBooking();
+
+  // isStale = true nếu bất kỳ socket nào mất kết nối > 10s
+  const isStale = regularSocket.isStale || vipSocket.isStale;
 
   // Admin View State and Hooks (polls only when admin view is active)
   const { adminStats, isAdminLoading, refetch } = useAdminStats(view === "admin");
@@ -67,6 +71,9 @@ function App() {
 
               <UserIdentityInput userId={userId} onChange={setUserId} />
 
+              {/* Banner cảnh báo khi mất kết nối WS > 10s */}
+              <WsStatusBanner isStale={isStale} />
+
               {/* Grid of Ticket Types */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <TicketCard
@@ -76,6 +83,7 @@ function App() {
                   description="Trải nghiệm không gian âm nhạc sôi động và đầy sắc màu."
                   totalTickets={300}
                   isWsConnected={regularSocket.isWsConnected}
+                  isStale={isStale}
                   count={regularSocket.count}
                   isHolding={isHolding}
                   onHold={handleHoldTicket}
@@ -88,6 +96,7 @@ function App() {
                   description="Hàng ghế đầu cận cảnh sân khấu, kèm quà tặng lưu niệm."
                   totalTickets={200}
                   isWsConnected={vipSocket.isWsConnected}
+                  isStale={isStale}
                   count={vipSocket.count}
                   isHolding={isHolding}
                   onHold={handleHoldTicket}
