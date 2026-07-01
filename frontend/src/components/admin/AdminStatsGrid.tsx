@@ -45,7 +45,7 @@ interface StatCardProps {
 }
 
 const StatCard = ({ label, value, icon, colorClass }: StatCardProps) => (
-  <div className="bento-card gap-2 flex items-baseline relative overflow-hidden">
+  <div className="bento-card gap-2 flex flex-col relative overflow-hidden">
     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-display">
       {label}
     </span>
