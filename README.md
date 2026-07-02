@@ -131,27 +131,32 @@ Vé giữ quá 5 phút không thanh toán sẽ được giải phóng tự độ
 
 ---
 
-## 🧪 Kiểm thử
+### Kiểm thử (Unit Test & Integration Test)
 
-### Unit Test (tích hợp với DB thực)
+Yêu cầu các container Docker phải đang chạy. Có 2 nhóm kiểm thử:
 
-Yêu cầu các container Docker phải đang chạy. Có 2 cách chạy bộ test tích hợp:
-
-**Cách 1: Chạy bên trong Docker Container (khuyến nghị)**
+#### 1. Unit Test (Cô lập)
+Chạy các test case đơn vị không cần kết nối cơ sở dữ liệu:
 ```bash
-docker exec -it ticketbox-backend npm test
+# Trên host hoặc trong Docker
+docker exec -it ticketbox-backend npm run test
 ```
 
-**Cách 2: Chạy trực tiếp trên Host machine**
-Do PostgreSQL trong Docker map cổng `5433:5432`, khi chạy test từ Host cần truyền các biến môi trường ghi đè:
-```bash
-cd backend
-DATABASE_HOST=localhost DATABASE_PORT=5433 npm test
-```
+#### 2. Integration Test (Tích hợp với DB thực)
+Chạy các test case tích hợp (như kiểm tra race condition, giữ vé song song):
 
+*   **Cách 1: Chạy trong Docker Container (Khuyến nghị)**
+    ```bash
+    docker exec -it ticketbox-backend npm run test:integration
+    ```
+*   **Cách 2: Chạy trực tiếp trên Host machine**
+    Do PostgreSQL trong Docker map cổng `5433:5432`, khi chạy test từ Host cần truyền các biến môi trường ghi đè:
+    ```bash
+    cd backend
+    DATABASE_HOST=localhost DATABASE_PORT=5433 npm run test:integration
+    ```
 
-
-Test case nổi bật: `tickets.service.spec.ts` — gửi 600 concurrent `holdTicket()`, xác minh đúng 200 VIP được giữ, 400 request còn lại throw `ConflictException(SOLD_OUT)`, không có ticketId trùng lặp.
+Test case nổi bật: [`tickets.service.integration-spec.ts`](backend/src/tickets/tickets.service.integration-spec.ts) — gửi 600 concurrent `holdTicket()`, xác minh đúng 200 VIP được giữ, 400 request còn lại throw `ConflictException(SOLD_OUT)`, không có ticketId trùng lặp.
 
 ### Load Test (k6 · 5.000 VUs)
 
@@ -173,11 +178,12 @@ Script tự động: khởi chạy k6, sau đó query DB xác minh `SOLD + HELD 
 
 | Chỉ số | Kết quả |
 |--------|---------|
-| Vé SOLD | 253 |
-| Vé HELD (chưa thanh toán) | 247 |
-| **SOLD + HELD = tổng kho** | ✅ **253 + 247 = 500** — không bán lố |
-| Data consistency (`sold_tickets = paid_orders`) | ✅ 253 = 253 |
-| Over-sell / race condition | ✅ 0 |
-| Avg response time | 8.05s _(Docker local, tải cực cao — expected)_ |
+| Vé SOLD | **500** (Bán hết sạch vé) |
+| Vé HELD (chưa thanh toán) | **0** |
+| **SOLD + HELD = tổng kho** | ✅ **500 + 0 = 500** — không bán lố |
+| Data consistency (`sold_tickets = paid_orders`) | ✅ **500 = 500** (Nhất quán tuyệt đối) |
+| Lỗi quá tải / Race condition | ✅ **0** |
+| Thời gian phản hồi trung bình (Avg duration) | **2.69 giây** _(Cực nhanh dưới tải 5.000 VUs)_ |
+| Tỷ lệ giao dịch thành công (Checks) | ✅ **100%** (10.000/10.000 checks thành công) |
 
-> **Kết quả cốt lõi:** `SOLD + HELD = 500` bằng đúng số vé trong kho, chứng minh `SKIP LOCKED` hoàn toàn chặn được race condition. Mỗi vé SOLD đều có order PAID tương ứng — dữ liệu nhất quán tuyệt đối.
+> **Kết quả cốt lõi:** Dữ liệu nhất quán tuyệt đối (`sold_tickets = paid_orders = 500`), không có bất kỳ giao dịch nào bị trùng lặp hoặc bán lố vé. Dưới tải cực nặng 5.000 VUs, hệ thống tự động điều phối hàng đợi và ghi nhận chính xác 100% giao dịch thành công.
