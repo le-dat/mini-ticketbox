@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { AdminStats } from '../../types';
 
+const TICKET_TYPE_LABELS: Record<number, string> = {
+  1: 'Regular',
+  2: 'VIP',
+};
+
 interface Props {
   adminStats: AdminStats | null;
   isAdminLoading: boolean;
@@ -34,9 +39,23 @@ export const AdminTicketsTable = ({
         </div>
         <button
           onClick={onRefresh}
-          className="px-4 py-2 border border-brand-primary/20 bg-brand-primary/5 hover:bg-brand-primary/10 rounded-full text-xs font-semibold text-brand-primary cursor-pointer active:scale-95 transition-all"
+          disabled={isAdminLoading}
+          title="Tải lại dữ liệu"
+          aria-label="Tải lại dữ liệu"
+          className="p-2.5 border border-brand-primary/20 bg-brand-primary/5 hover:bg-brand-primary/10 disabled:opacity-40 rounded-full text-brand-primary cursor-pointer active:scale-95 transition-all flex items-center justify-center"
         >
-          Tải Lại 🔄
+          <svg
+            className={`w-4 h-4 ${isAdminLoading ? 'animate-spin' : ''}`}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21.5 2v6h-6" />
+            <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+          </svg>
         </button>
       </div>
 
@@ -88,7 +107,7 @@ export const AdminTicketsTable = ({
                             : 'bg-brand-primary/15 text-brand-primary'
                         }`}
                       >
-                        {ticket.ticket_type_id === 2 ? 'VIP' : 'Regular'}
+                        {TICKET_TYPE_LABELS[ticket.ticket_type_id] ?? `Type ${ticket.ticket_type_id}`}
                       </span>
                     </td>
                     <td className="py-4 text-slate-300 font-mono">{ticket.user_id}</td>

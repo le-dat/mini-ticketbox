@@ -31,8 +31,8 @@ export const TicketCard = ({
     : 'bento-card bento-card-interactive flex flex-col justify-between gap-6 relative group';
 
   const badgeClass = isVip
-    ? 'absolute top-4 right-4 flex items-center gap-1.5 bg-brand-secondary/10 border border-brand-secondary/20 px-2.5 py-1 rounded-full text-[10px] font-semibold text-brand-secondary'
-    : 'absolute top-4 right-4 flex items-center gap-1.5 bg-brand-primary/10 border border-brand-primary/20 px-2.5 py-1 rounded-full text-[10px] font-semibold text-brand-primary';
+    ? 'absolute top-4 right-4 flex items-center justify-center bg-brand-secondary/10 border border-brand-secondary/20 p-1 rounded-full text-brand-secondary'
+    : 'absolute top-4 right-4 flex items-center justify-center bg-brand-primary/10 border border-brand-primary/20 p-1 rounded-full text-brand-primary';
 
   const pingColorClass = isWsConnected
     ? (isVip ? 'bg-brand-secondary animate-ping' : 'bg-brand-primary animate-ping')
@@ -46,9 +46,11 @@ export const TicketCard = ({
 
   return (
     <div className={cardClass}>
-      <div className={badgeClass}>
-        <span className={`w-1.5 h-1.5 rounded-full ${pingColorClass}`} />
-        {isWsConnected ? 'Trực tiếp' : 'Tự động cập nhật'}
+      <div
+        className={badgeClass}
+        title={isWsConnected ? 'Đang đồng bộ' : 'Tự động cập nhật định kỳ'}
+      >
+        <span className={`w-2 h-2 rounded-full ${pingColorClass}`} />
       </div>
 
       <div>
