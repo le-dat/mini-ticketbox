@@ -52,7 +52,7 @@ cp .env.example .env
 | Service     | URL                         |
 |-------------|-----------------------------|
 | Frontend    | http://localhost:5173       |
-| Admin       | http://localhost:5173/admin |
+| Admin       | http://localhost:5173       |
 | Backend API | http://localhost:3000       |
 
 > Lần đầu chạy: tự động build image, migrate DB và seed 500 vé.
@@ -61,7 +61,7 @@ cp .env.example .env
 
 ```bash
 # Backend
-cd backend && npm install && npm run db:migrate && npm run db:seed && npm run start:dev
+cd backend && npm install && npm run start:dev
 
 # Frontend (terminal mới)
 cd frontend && npm install && npm run dev
@@ -71,9 +71,9 @@ cd frontend && npm install && npm run dev
 
 ## ⚙️ Giải pháp kỹ thuật
 
-### 1. Chống Over-selling — PostgreSQL `FOR UPDATE SKIP LOCKED`
+### 1. Giải pháp ngăn chặn bán lố vé (Over-selling) bằng PostgreSQL
 
-Thay vì dùng counter (`sold_quantity++`), hệ thống pre-generate **500 row vé vật lý** trong DB. Khi user bấm "Chọn vé", 1 câu `UPDATE` atomic xử lý toàn bộ:
+Thay vì dùng biến đếm (dễ xung đột khi nhiều người mua cùng lúc), hệ thống tạo sẵn **500 vé vật lý** trong DB. Khi đặt vé, hệ thống tìm và giữ đúng 1 vé trống qua một câu lệnh `UPDATE` duy nhất:
 
 ```sql
 UPDATE tickets SET status = 'HELD', user_id = $1, hold_expires_at = NOW() + INTERVAL '5 minutes'
@@ -87,8 +87,8 @@ WHERE id = (
 RETURNING id, hold_expires_at;
 ```
 
-`SKIP LOCKED` đảm bảo 5.000 request song song đều chọn row khác nhau — **không deadlock, không over-sell**.  
-Vé HELD hết hạn được cron job tự thu hồi mỗi 30 giây.
+Cú pháp `SKIP LOCKED` giúp hàng nghìn request mua vé đồng thời tự động bỏ qua các hàng đang bị khóa để chọn hàng trống tiếp theo — tránh nghẽn (deadlock) và bán lố (over-sell).  
+Vé giữ quá 5 phút không thanh toán sẽ được giải phóng tự động sau mỗi 30 giây.
 
 > **Tại sao không dùng Redis?** Redis + BullMQ tăng complexity (sync state 2 hệ thống) và không cần thiết ở scale 5.000 user / 500 vé — PostgreSQL xử lý tốt.
 
@@ -115,10 +115,21 @@ Vé HELD hết hạn được cron job tự thu hồi mỗi 30 giây.
 
 ### Unit Test (tích hợp với DB thực)
 
+Yêu cầu các container Docker phải đang chạy. Có 2 cách chạy bộ test tích hợp:
+
+**Cách 1: Chạy bên trong Docker Container (khuyến nghị)**
 ```bash
-# Yêu cầu: Docker đang chạy (cần kết nối DB)
-cd backend && npm test
+docker exec -it ticketbox-backend npm test
 ```
+
+**Cách 2: Chạy trực tiếp trên Host machine**
+Do PostgreSQL trong Docker map cổng `5433:5432`, khi chạy test từ Host cần truyền các biến môi trường ghi đè:
+```bash
+cd backend
+DATABASE_HOST=localhost DATABASE_PORT=5433 npm test
+```
+
+
 
 Test case nổi bật: `tickets.service.spec.ts` — gửi 600 concurrent `holdTicket()`, xác minh đúng 200 VIP được giữ, 400 request còn lại throw `ConflictException(SOLD_OUT)`, không có ticketId trùng lặp.
 
