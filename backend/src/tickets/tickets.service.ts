@@ -31,7 +31,7 @@ export class TicketsService {
   constructor(private readonly db: DatabaseService) {}
 
   /**
-   * Giữ vé an toàn sử dụng FOR UPDATE SKIP LOCKED
+   * Safely hold a ticket using FOR UPDATE SKIP LOCKED
    */
   async holdTicket(
     ticketTypeId: number,
@@ -67,7 +67,8 @@ export class TicketsService {
       if (result.rows.length === 0) {
         throw new ConflictException({
           code: 'SOLD_OUT',
-          message: 'Không còn vé trống loại này hoặc tất cả vé đang được giữ.',
+          message:
+            'No available tickets of this type or all tickets are currently held.',
         });
       }
 
@@ -86,7 +87,7 @@ export class TicketsService {
   }
 
   /**
-   * Đếm số lượng vé theo trạng thái và loại vé
+   * Count tickets by status and ticket type ID
    */
   async getTicketsCount(ticketTypeId: number, status: string): Promise<number> {
     const query = `
@@ -98,7 +99,7 @@ export class TicketsService {
   }
 
   /**
-   * Reset trạng thái tất cả các vé phục vụ cho việc dọn dẹp trước khi kiểm thử
+   * Reset all tickets status for test suite cleanup purposes
    */
   async resetAllTickets(): Promise<void> {
     const query = `
@@ -115,7 +116,7 @@ export class TicketsService {
   }
 
   /**
-   * Lấy danh sách các loại vé từ bảng ticket_types (có caching in-memory)
+   * Retrieve ticket types from ticket_types table (with in-memory caching)
    */
   async getTicketTypes(): Promise<TicketType[]> {
     if (this.cachedTicketTypes) {
@@ -131,7 +132,7 @@ export class TicketsService {
   }
 
   /**
-   * Lấy danh sách các vé đang bị giữ (HELD) và chưa hết hạn
+   * Retrieve currently held (HELD) and unexpired tickets
    */
   async getHeldTickets(): Promise<HeldTicket[]> {
     const query = `

@@ -6,7 +6,7 @@ import { ticketService } from '../services/ticket.service';
 export const useTicketSocket = (ticketTypeId: number) => {
   const [count, setCount] = useState<number>(0);
   const [isWsConnected, setIsWsConnected] = useState<boolean>(false);
-  // isStale = true khi WS mất kết nối > 10 giây
+  // isStale = true when WS disconnect exceeds 10 seconds
   const [isStale, setIsStale] = useState<boolean>(false);
 
   const staleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -20,11 +20,11 @@ export const useTicketSocket = (ticketTypeId: number) => {
   useEffect(() => {
     let active = true;
 
-    // Fetch số lượng vé ban đầu — chỉ 1 lần duy nhất
+    // Fetch initial ticket count — once upon mounting
     ticketService.getAvailableCount(ticketTypeId).then((availableCount) => {
       if (active) setCount(availableCount);
     }).catch((err) => {
-      console.error('Lỗi khi tải số lượng vé ban đầu:', err);
+      console.error('Failed to fetch initial ticket count:', err);
     });
 
     const socket = io(API_BASE_URL, {
@@ -35,12 +35,12 @@ export const useTicketSocket = (ticketTypeId: number) => {
 
     socket.on('connect', () => {
       if (!active) return;
-      // Huỷ timer stale + dừng fallback poll khi WS reconnect
+      // Cancel stale timer and stop fallback poll on WS reconnect
       clearTimeout(staleTimerRef.current);
       stopFallbackPoll();
       setIsWsConnected(true);
       setIsStale(false);
-      // Refetch ngay khi WS reconnect để đồng bộ lại count
+      // Refetch on WS reconnect to sync ticket counts
       ticketService.getAvailableCount(ticketTypeId).then((availableCount) => {
         if (active) setCount(availableCount);
       }).catch(() => {});
@@ -49,15 +49,15 @@ export const useTicketSocket = (ticketTypeId: number) => {
     socket.on('disconnect', () => {
       if (!active) return;
       setIsWsConnected(false);
-      // Huỷ timer stale cũ trước khi bắt đầu timer mới để tránh trùng lặp/memory leak
+      // Cancel previous stale timer to prevent duplicates/memory leaks
       if (staleTimerRef.current) {
         clearTimeout(staleTimerRef.current);
       }
-      // Bắt đầu đếm ngược 10s — nếu không reconnect → đánh dấu stale + bật fallback poll
+      // Start 10s countdown — mark stale and start fallback poll if reconnect fails
       staleTimerRef.current = setTimeout(() => {
         if (!active) return;
         setIsStale(true);
-        // Fallback: poll mỗi 5s để count không bị đóng băng khi WS chết hẳn
+        // Fallback: poll every 5s to keep ticket count updated when WS is down
         pollIntervalRef.current = setInterval(() => {
           if (!active) return;
           ticketService.getAvailableCount(ticketTypeId).then((availableCount) => {
@@ -67,7 +67,7 @@ export const useTicketSocket = (ticketTypeId: number) => {
       }, WS_STALE_THRESHOLD_MS);
     });
 
-    // Backend push count mới — không cần polling
+    // Receive new count pushed by backend — no client polling needed
     socket.on(`ticket_count_updated:${ticketTypeId}`, (data: { availableCount: number }) => {
       if (active) setCount(data.availableCount);
     });
@@ -78,7 +78,7 @@ export const useTicketSocket = (ticketTypeId: number) => {
       stopFallbackPoll();
       socket.disconnect();
     };
-  }, [ticketTypeId]); // Không có isWsConnected trong deps → không loop
+  }, [ticketTypeId]); // Omit isWsConnected from deps to prevent re-evaluation loops
 
   return { count, isWsConnected, isStale };
 };

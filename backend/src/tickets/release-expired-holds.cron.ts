@@ -29,15 +29,15 @@ export class ReleaseExpiredHoldsCron {
       const result = await this.db.query(query);
       if (result.rowCount && result.rowCount > 0) {
         this.logger.log(
-          `Đã tự động giải phóng ${result.rowCount} vé giữ hết hạn.`,
+          `Automatically released ${result.rowCount} expired ticket holds.`,
         );
-        // Emit sự kiện WebSocket cập nhật lại số lượng vé
+        // Broadcast WebSocket event to sync ticket counts
         await this.ticketsGateway.broadcastCountUpdate();
       }
     } catch (error) {
       const err = error as Error;
       this.logger.error(
-        `Lỗi khi giải phóng vé giữ hết hạn: ${err.message}`,
+        `Failed to release expired ticket holds: ${err.message}`,
         err.stack,
       );
     }

@@ -80,13 +80,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     try {
       this.logger.log('Starting database migrations and seeding...');
 
-      // Đọc và thực thi schema.sql
+      // Read and execute schema.sql
       const schemaPath = path.join(process.cwd(), 'database', 'schema.sql');
       const schemaSql = await fs.readFile(schemaPath, 'utf8');
       this.logger.log(`Running schema migration from ${schemaPath}`);
       await client.query(schemaSql);
 
-      // Đọc và thực thi seed.sql
+      // Read and execute seed.sql
       const seedPath = path.join(process.cwd(), 'database', 'seed.sql');
       const seedSql = await fs.readFile(seedPath, 'utf8');
       this.logger.log(`Running database seeding from ${seedPath}`);
@@ -106,7 +106,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Phương thức thực hiện truy vấn SQL chung
+   * Helper method to execute common SQL queries
    */
   async query<T extends QueryResultRow = any>(
     text: string,
@@ -116,7 +116,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Lấy client từ pool cho các xử lý transactions phức tạp
+   * Get a client from the pool for manual transactions handling
    */
   async getClient() {
     return this.pool.connect();
