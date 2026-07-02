@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { TicketCountdown } from './TicketCountdown';
 import type { AdminStats } from '../../types';
 
 const TICKET_TYPE_LABELS: Record<number, string> = {
@@ -11,51 +11,6 @@ interface Props {
   isAdminLoading: boolean;
   onRefresh: () => void;
 }
-
-interface TicketCountdownProps {
-  expiresAt: string;
-}
-
-const TicketCountdown = ({ expiresAt }: TicketCountdownProps) => {
-  const [secondsLeft, setSecondsLeft] = useState(() => {
-    return Math.max(
-      0,
-      Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
-    );
-  });
-
-  useEffect(() => {
-    if (secondsLeft <= 0) return;
-
-    const interval = setInterval(() => {
-      const remaining = Math.max(
-        0,
-        Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
-      );
-      setSecondsLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(interval);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [expiresAt, secondsLeft]);
-
-  if (secondsLeft <= 0) {
-    return <span className="text-brand-danger">Đang giải phóng...</span>;
-  }
-
-  const minutes = Math.floor(secondsLeft / 60);
-  const seconds = secondsLeft % 60;
-
-  return (
-    <>
-      {`${minutes.toString().padStart(2, '0')}:${seconds
-        .toString()
-        .padStart(2, '0')}`}
-    </>
-  );
-};
 
 export const AdminTicketsTable = ({
   adminStats,

@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
-import { API_BASE_URL } from '../services/api-client';
+import { API_BASE_URL, WS_STALE_THRESHOLD_MS, STALE_POLL_INTERVAL_MS } from '../config/constants';
 import { ticketService } from '../services/ticket.service';
-
-const WS_STALE_THRESHOLD_MS = 10_000; // Coi là stale sau 10s mất kết nối
-const STALE_POLL_INTERVAL_MS = 5_000; // Fallback poll mỗi 5s khi WS chết hẳn
 
 export const useTicketSocket = (ticketTypeId: number) => {
   const [count, setCount] = useState<number>(0);

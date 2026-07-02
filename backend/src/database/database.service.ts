@@ -81,13 +81,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Starting database migrations and seeding...');
 
       // Đọc và thực thi schema.sql
-      const schemaPath = path.join(__dirname, 'schema.sql');
+      const schemaPath = path.join(process.cwd(), 'database', 'schema.sql');
       const schemaSql = await fs.readFile(schemaPath, 'utf8');
       this.logger.log(`Running schema migration from ${schemaPath}`);
       await client.query(schemaSql);
 
       // Đọc và thực thi seed.sql
-      const seedPath = path.join(__dirname, 'seed.sql');
+      const seedPath = path.join(process.cwd(), 'database', 'seed.sql');
       const seedSql = await fs.readFile(seedPath, 'utf8');
       this.logger.log(`Running database seeding from ${seedPath}`);
       await client.query(seedSql);

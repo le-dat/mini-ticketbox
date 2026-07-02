@@ -109,6 +109,18 @@ Vé giữ quá 5 phút không thanh toán sẽ được giải phóng tự độ
 - **Idempotency** — payment API kiểm tra đơn hàng cũ trước khi xử lý, tránh charge kép khi client retry.
 - **Unit Test:** Jest — kiểm tra race condition với 600 concurrent requests, đảm bảo chính xác 200 VIP được hold, 400 còn lại nhận `SOLD_OUT`.
 
+### 4. Các trường hợp góc đã xử lý (Edge Cases)
+
+| Tình huống (Edge Case) | Cách giải quyết trong hệ thống |
+| :--- | :--- |
+| **Spam nút đặt vé / mua vé** | Vô hiệu hóa (disable) nút lập tức ở Frontend khi click để chặn double-submit. |
+| **Mua trùng / click đúp thanh toán** | **Idempotency**: Trả về đơn hàng `PAID` cũ nếu đã hoàn tất; dùng khóa `FOR UPDATE` trong giao dịch thanh toán để chặn các yêu cầu song song. |
+| **Hết hạn giữ vé (5 phút)** | Hệ thống tự động thu hồi vé quá hạn sau mỗi 30 giây bằng Cron Job. |
+| **Lệch giờ countdown** | Tính toán thời gian đếm ngược dựa trên hiệu số với giờ server (`expires_at - Date.now()`) thay vì dùng timer client thuần túy. |
+| **Mất mạng khi đang giao dịch** | Nếu mất kết nối WebSocket > 10s: Hiển thị cảnh báo, khóa mua vé và kích hoạt dự phòng **HTTP Polling** mỗi 5s để cập nhật số lượng. |
+| **Tràn màn hình khi có hàng nghìn giao dịch** | Giới hạn tần suất gửi tin nhắn WebSocket từ server tối đa 1 lần/giây. |
+| **Mất kết nối DB tạm thời** | Cơ chế tự động kết nối lại 5 lần (cách nhau 2s) khi khởi chạy Backend. |
+
 ---
 
 ## 🧪 Kiểm thử

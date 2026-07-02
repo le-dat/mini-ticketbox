@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getSynchronizedTime } from '../utils/time';
 
 interface Props {
   expiresAt: string; // ISO String từ server
@@ -10,7 +11,7 @@ export const CountdownTimer = ({ expiresAt, onTimeout }: Props) => {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const difference = new Date(expiresAt).getTime() - Date.now();
+      const difference = new Date(expiresAt).getTime() - getSynchronizedTime();
       if (difference <= 0) {
         onTimeout();
         return 0;
@@ -28,7 +29,19 @@ export const CountdownTimer = ({ expiresAt, onTimeout }: Props) => {
       }
     }, 1000);
 
-    return () => clearInterval(timer);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const remaining = calculateTimeLeft();
+        setTimeLeft(remaining);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [expiresAt, onTimeout]);
 
   const minutes = Math.floor(timeLeft / 60);
@@ -60,3 +73,4 @@ export const CountdownTimer = ({ expiresAt, onTimeout }: Props) => {
     </div>
   );
 };
+

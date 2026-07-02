@@ -20,7 +20,7 @@ function App() {
   const {
     userId,
     setUserId,
-    isHolding,
+    holdingTicketTypeId,
     isPaying,
     heldTicket,
     paymentSuccessOrder,
@@ -85,7 +85,8 @@ function App() {
                   isWsConnected={regularSocket.isWsConnected}
                   isStale={isStale}
                   count={regularSocket.count}
-                  isHolding={isHolding}
+                  isHolding={holdingTicketTypeId === 1}
+                  isAnyHolding={holdingTicketTypeId !== null}
                   onHold={handleHoldTicket}
                 />
 
@@ -98,7 +99,8 @@ function App() {
                   isWsConnected={vipSocket.isWsConnected}
                   isStale={isStale}
                   count={vipSocket.count}
-                  isHolding={isHolding}
+                  isHolding={holdingTicketTypeId === 2}
+                  isAnyHolding={holdingTicketTypeId !== null}
                   onHold={handleHoldTicket}
                 />
               </div>

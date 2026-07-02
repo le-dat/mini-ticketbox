@@ -34,8 +34,8 @@ async function resetDatabase() {
     await client.query('TRUNCATE TABLE orders, tickets RESTART IDENTITY;');
     console.log('Tables truncated successfully.');
 
-    // Find and execute seed.sql from backend/src/database/seed.sql
-    const seedPath = path.join(__dirname, '../src/database/seed.sql');
+    // Find and execute seed.sql from backend/database/seed.sql
+    const seedPath = path.join(process.cwd(), 'database', 'seed.sql');
     console.log(`Reading seed SQL from: ${seedPath}`);
     const seedSql = await fs.readFile(seedPath, 'utf8');
 

@@ -5,8 +5,6 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -17,7 +15,6 @@ export class OrdersController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async processPayment(@Body() createOrderDto: CreateOrderDto) {
     return this.ordersService.processPayment(
       createOrderDto.ticket_id,

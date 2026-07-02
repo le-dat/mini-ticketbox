@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { useTicketSocket } from './useTicketSocket';
 import { ticketService } from '../services/ticket.service';
 import { orderService } from '../services/order.service';
+import { getErrorMessage } from '../utils/error';
 import type { HeldTicket, Order } from '../types';
 
 export const useBooking = () => {
   const [userId, setUserId] = useState<string>('khach_hang_1');
-  const [isHolding, setIsHolding] = useState<boolean>(false);
+  const [holdingTicketTypeId, setHoldingTicketTypeId] = useState<number | null>(null);
   const [isPaying, setIsPaying] = useState<boolean>(false);
   const [heldTicket, setHeldTicket] = useState<HeldTicket | null>(null);
   const [paymentSuccessOrder, setPaymentSuccessOrder] = useState<Order | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const isHolding = holdingTicketTypeId !== null;
 
   // Real-time Counts via Socket Hooks
   const regularSocket = useTicketSocket(1);
@@ -23,7 +26,7 @@ export const useBooking = () => {
       return;
     }
     setErrorMessage(null);
-    setIsHolding(true);
+    setHoldingTicketTypeId(ticketTypeId);
     setPaymentSuccessOrder(null);
 
     try {
@@ -37,10 +40,9 @@ export const useBooking = () => {
         typeName,
       });
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Có lỗi xảy ra khi giữ vé. Vui lòng thử lại.';
-      setErrorMessage(msg);
+      setErrorMessage(getErrorMessage(err));
     } finally {
-      setIsHolding(false);
+      setHoldingTicketTypeId(null);
     }
   };
 
@@ -59,8 +61,7 @@ export const useBooking = () => {
       setPaymentSuccessOrder(order);
       setHeldTicket(null);
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Thanh toán thất bại. Vui lòng kiểm tra lại.';
-      setErrorMessage(msg);
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsPaying(false);
     }
@@ -76,6 +77,7 @@ export const useBooking = () => {
     userId,
     setUserId,
     isHolding,
+    holdingTicketTypeId,
     isPaying,
     heldTicket,
     paymentSuccessOrder,
@@ -88,3 +90,4 @@ export const useBooking = () => {
     handleHoldTimeout,
   };
 };
+

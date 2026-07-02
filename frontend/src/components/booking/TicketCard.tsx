@@ -8,6 +8,7 @@ interface Props {
   isStale: boolean;
   count: number;
   isHolding: boolean;
+  isAnyHolding: boolean;
   onHold: (ticketTypeId: number, price: number, typeName: string) => void;
 }
 
@@ -21,6 +22,7 @@ export const TicketCard = ({
   isStale,
   count,
   isHolding,
+  isAnyHolding,
   onHold,
 }: Props) => {
   const isVip = ticketTypeId === 2;
@@ -74,7 +76,7 @@ export const TicketCard = ({
 
         <button
           id={`hold-ticket-btn-${ticketTypeId}`}
-          disabled={isHolding || count === 0 || isStale}
+          disabled={isAnyHolding || count === 0 || isStale}
           title={isStale ? 'Đang mất kết nối — vui lòng chờ kết nối lại' : undefined}
           onClick={() => onHold(ticketTypeId, price, typeName)}
           className={`w-full py-3.5 rounded-full font-bold cursor-pointer transition-all duration-200 active:scale-98 text-xs uppercase tracking-wider ${
@@ -91,3 +93,4 @@ export const TicketCard = ({
     </div>
   );
 };
+

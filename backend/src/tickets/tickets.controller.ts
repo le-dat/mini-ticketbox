@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { HoldTicketDto } from './dto/hold-ticket.dto';
 
@@ -16,7 +8,6 @@ export class TicketsController {
 
   @Post('hold')
   @HttpCode(HttpStatus.OK)
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async holdTicket(@Body() holdTicketDto: HoldTicketDto) {
     return this.ticketsService.holdTicket(
       holdTicketDto.ticket_type_id,
