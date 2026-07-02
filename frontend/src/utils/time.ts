@@ -1,4 +1,4 @@
-// Lệch giờ hệ thống giữa Server và Client (serverTime - localTime)
+// Time offset between Server and Client (serverTime - localTime)
 export let serverClockOffset = 0;
 
 export const setServerClockOffset = (serverTimeStr: string) => {
@@ -9,7 +9,7 @@ export const setServerClockOffset = (serverTimeStr: string) => {
   }
 };
 
-// Đồng bộ hóa giờ client với server clock offset
+// Synchronize client clock with server clock offset
 export const getSynchronizedTime = (): number => {
   return Date.now() + serverClockOffset;
 };

@@ -12,15 +12,15 @@ export const useAdminStats = (isActive: boolean) => {
       const data = await orderService.getAdminStats();
       setAdminStats(data);
     } catch (err) {
-      console.error('Lỗi tải thống kê admin:', err);
+      console.error('Failed to fetch admin stats:', err);
     } finally {
       setIsAdminLoading(false);
     }
   }, []);
 
-  // Admin: fetch ngay khi vào tab + polling mỗi 10s
-  // Lý do giữ polling ở đây: admin chỉ 1–2 người → 12 req/phút, negligible.
-  // Khác với client (5.000 user) — client dùng WS-only để tránh sập server.
+  // Admin: fetch on tab entry + poll every 10s
+  // Polling used here because there are only 1-2 admins -> 12 req/min is negligible.
+  // Unlike client (5000 users) which must use WS-only to avoid overloading server.
   useEffect(() => {
     if (isActive) {
       fetchAdminStats();

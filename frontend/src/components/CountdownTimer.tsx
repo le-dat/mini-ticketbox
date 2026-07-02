@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getSynchronizedTime } from '../utils/time';
 
 interface Props {
-  expiresAt: string; // ISO String từ server
+  expiresAt: string; // ISO String from server
   onTimeout: () => void;
 }
 
@@ -46,7 +46,7 @@ export const CountdownTimer = ({ expiresAt, onTimeout }: Props) => {
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  const isUrgent = timeLeft < 60; // Dưới 60 giây
+  const isUrgent = timeLeft < 60; // Under 60 seconds
 
   if (timeLeft <= 0) {
     return (

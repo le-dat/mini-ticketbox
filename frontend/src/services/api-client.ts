@@ -6,7 +6,7 @@ export const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Axios Interceptor cập nhật offset từ header Date của server trên mỗi response
+// Axios Interceptor updating clock offset from server Date header on each response
 apiClient.interceptors.response.use(
   (response) => {
     const serverDateHeader = response.headers['date'];

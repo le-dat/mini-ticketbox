@@ -32,7 +32,7 @@ function App() {
     handleHoldTimeout,
   } = useBooking();
 
-  // isStale = true nếu bất kỳ socket nào mất kết nối > 10s
+  // isStale = true if any socket disconnect exceeds 10s
   const isStale = regularSocket.isStale || vipSocket.isStale;
 
   // Admin View State and Hooks (polls only when admin view is active)
