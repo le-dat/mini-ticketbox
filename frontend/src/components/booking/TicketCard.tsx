@@ -81,17 +81,9 @@ export const TicketCard = ({
             count === 0 || isStale
               ? 'bg-slate-900 text-slate-600 border border-border-default cursor-not-allowed'
               : isVip
-              ? 'btn-glint'
+              ? 'btn-brand-secondary btn-glint'
               : 'btn-brand-primary btn-glint'
           }`}
-          style={
-            isVip && count > 0 && !isHolding && !isStale
-              ? {
-                  background: 'linear-gradient(135deg, #c3a3ff 0%, #a881f5 55%, #cfbeeb 100%)',
-                  color: '#1A120D',
-                }
-              : {}
-          }
         >
           {isStale ? '⚠ Mất kết nối' : count === 0 ? 'Hết vé' : isHolding ? 'Đang giữ vé...' : `Đặt Vé ${typeName}`}
         </button>

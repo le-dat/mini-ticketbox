@@ -74,6 +74,20 @@
   background: linear-gradient(135deg, #F39A67 0%, #F9A474 55%, #F7B38E 100%);
 }
 
+/* Brand Secondary (VIP) Button */
+.btn-brand-secondary {
+  background: linear-gradient(135deg, #c3a3ff 0%, #a881f5 55%, #cfbeeb 100%);
+  color: #1A120D;
+  border: 1px solid transparent;
+  border-radius: 32px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-brand-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b491f5 0%, #c3a3ff 55%, #a881f5 100%);
+}
+
 /* WsStatusBanner entrance animation */
 @keyframes fadeInDown {
   from {

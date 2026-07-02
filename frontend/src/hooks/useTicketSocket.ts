@@ -52,6 +52,10 @@ export const useTicketSocket = (ticketTypeId: number) => {
     socket.on('disconnect', () => {
       if (!active) return;
       setIsWsConnected(false);
+      // Huỷ timer stale cũ trước khi bắt đầu timer mới để tránh trùng lặp/memory leak
+      if (staleTimerRef.current) {
+        clearTimeout(staleTimerRef.current);
+      }
       // Bắt đầu đếm ngược 10s — nếu không reconnect → đánh dấu stale + bật fallback poll
       staleTimerRef.current = setTimeout(() => {
         if (!active) return;

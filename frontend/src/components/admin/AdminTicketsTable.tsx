@@ -12,20 +12,56 @@ interface Props {
   onRefresh: () => void;
 }
 
+interface TicketCountdownProps {
+  expiresAt: string;
+}
+
+const TicketCountdown = ({ expiresAt }: TicketCountdownProps) => {
+  const [secondsLeft, setSecondsLeft] = useState(() => {
+    return Math.max(
+      0,
+      Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
+    );
+  });
+
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+
+    const interval = setInterval(() => {
+      const remaining = Math.max(
+        0,
+        Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
+      );
+      setSecondsLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt, secondsLeft]);
+
+  if (secondsLeft <= 0) {
+    return <span className="text-brand-danger">Đang giải phóng...</span>;
+  }
+
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+
+  return (
+    <>
+      {`${minutes.toString().padStart(2, '0')}:${seconds
+        .toString()
+        .padStart(2, '0')}`}
+    </>
+  );
+};
+
 export const AdminTicketsTable = ({
   adminStats,
   isAdminLoading,
   onRefresh,
 }: Props) => {
-  // Force a re-render every second to update countdowns smoothly
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTick((t) => t + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="bento-card">
       <div className="flex justify-between items-center pb-4 border-b border-border-default mb-6">
@@ -82,15 +118,6 @@ export const AdminTicketsTable = ({
             </thead>
             <tbody>
               {adminStats.heldTickets.map((ticket) => {
-                const secondsLeft = Math.max(
-                  0,
-                  Math.floor(
-                    (new Date(ticket.hold_expires_at).getTime() - Date.now()) / 1000,
-                  ),
-                );
-                const minutes = Math.floor(secondsLeft / 60);
-                const seconds = secondsLeft % 60;
-
                 return (
                   <tr
                     key={ticket.id}
@@ -112,13 +139,7 @@ export const AdminTicketsTable = ({
                     </td>
                     <td className="py-4 text-slate-300 font-mono">{ticket.user_id}</td>
                     <td className="py-4 text-right font-mono text-slate-300">
-                      {secondsLeft <= 0 ? (
-                        <span className="text-brand-danger">Đang giải phóng...</span>
-                      ) : (
-                        `${minutes.toString().padStart(2, '0')}:${seconds
-                          .toString()
-                          .padStart(2, '0')}`
-                      )}
+                      <TicketCountdown expiresAt={ticket.hold_expires_at} />
                     </td>
                   </tr>
                 );
