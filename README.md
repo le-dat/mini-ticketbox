@@ -45,8 +45,16 @@ graph TD
 ### Docker (khuyến nghị)
 
 ```bash
+# 1. Khởi tạo cấu hình biến môi trường
 cp .env.example .env
+
+# 2. Khởi chạy dự án
+# Dành cho Linux/macOS (Cần cấp quyền thực thi lần đầu):
+chmod +x start-dev.sh
 ./start-dev.sh
+
+# Hoặc chạy lệnh trực tiếp bằng Docker Compose (Mọi hệ điều hành bao gồm Windows):
+docker compose -p nam-viet --env-file .env -f docker/docker-compose.yml -f docker/docker-compose.override.yml up -d
 ```
 
 | Service     | URL                         |
@@ -148,9 +156,14 @@ Test case nổi bật: `tickets.service.spec.ts` — gửi 600 concurrent `holdT
 ### Load Test (k6 · 5.000 VUs)
 
 ```bash
-# Yêu cầu: Docker đang chạy + k6 đã cài (https://k6.io/docs/get-started/installation/)
+# Cấp quyền thực thi và chạy script (Linux/macOS):
+chmod +x test-performance.sh
 ./test-performance.sh
+
+# Hoặc chạy trực tiếp qua k6 Docker trên mọi hệ điều hành (không cần cài k6 trên máy):
+docker run --rm -i --network=host -v "$(pwd)/backend/test/load:/app" -w /app grafana/k6 run loadtest.js
 ```
+*Lưu ý: Script `./test-performance.sh` sẽ tự động kiểm tra k6 trên máy bạn; nếu chưa cài k6, script sẽ tự động chuyển sang chạy thông qua Docker container `grafana/k6`.*
 
 Script tự động: khởi chạy k6, sau đó query DB xác minh `SOLD + HELD = 500`.
 
